@@ -456,5 +456,6 @@ variable "vnet_subnet_id" {
 variable "azdo_pat" {
   type        = string
   description = "devops personal access token"
+  default = null
   sensitive = true
 }
