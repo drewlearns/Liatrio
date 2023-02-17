@@ -1,48 +1,41 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
-- main
-
-pool:
-  vmImage: ubuntu-latest
-
-steps:
-  - script: |
-      wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
-      echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-      sudo apt update && sudo apt install terraform && terraform --version
-    displayName: 'Install Terraform'  
-
-  - script: |
-      echo """ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-      ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-      ARM_TENANT_ID=$(ARM_TENANT_ID)
-      ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-      CLOUDFLARE_API_TOKEN=$(CLOUDFLARE_API_TOKEN)
-      AZURE_DEVOPS_PAT=$(AZURE_DEVOPS_PAT)""" >> psa-dst/.env;
-    displayName: "Create .ENV file"
-    
-  - script: |
-      curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-      az upgrade
-      az login -u adkarrik -p $(NCSU_SECRET)
-      az login
-      az account set --subscription=$(ARM_SUBSCRIPTION_ID)
-    displayName: 'AZ Login'
-  - script: |
-      export MSYS_NO_PATHCONV=1
-      ls && \
-      cd psa-dst && \
-      terraform init
-    displayName: "Terraform Init"
-  - script: |
-      cd psa-dst && \
-      terraform plan -out "/home/vsts/work/1/s/psa-dst/main.tfplan"
-    displayName: "Terraform Plan"
-  - script: |
-      cd psa-dst && \
-      terraform apply "/home/vsts/work/1/s/psa-dst/main.tfplan"
-    displayName: "Terraform Apply"
+  - main
+  - develop
+  
+  resources:
+  - repo: self
+  
+  variables:
+    # Container registry service connection established during pipeline creation
+    dockerRegistryServiceConnection: '876b729c-65c0-48f4-9c58-aa24ea864d11'
+    imageRepository: 'precisionsustainableagdstselector'
+    containerRegistry: 'containerregistry4pd7i.azurecr.io'
+    dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+    tag: '$(Build.BuildId)'
+  
+    # Agent VM image name
+    vmImageName: 'ubuntu-latest'
+  
+  stages:
+  - stage: Build
+    displayName: Build and push stage
+    jobs:
+    - job: Build
+      displayName: Build
+      pool:
+        vmImage: $(vmImageName)
+      steps:
+      - task: Docker@2
+        displayName: Build and push an image to container registry
+        inputs:
+          command: buildAndPush
+          repository: $(imageRepository)
+          dockerfile: $(dockerfilePath)
+          containerRegistry: $(dockerRegistryServiceConnection)
+          tags: |
+            $(tag)
+  
