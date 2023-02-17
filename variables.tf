@@ -452,3 +452,9 @@ variable "vnet_subnet_id" {
   description = "(Optional) The ID of a Subnet where the Kubernetes Node Pool should exist. Changing this forces a new resource to be created."
   default     = null
 }
+
+variable "azdo_pat" {
+  type        = string
+  description = "devops personal access token"
+  sensitive = true
+}

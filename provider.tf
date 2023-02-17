@@ -20,10 +20,10 @@ terraform {
 provider "azurerm" {
   #  Caution
   # The ability to specify your Azure subscription credentials in a Terraform configuration file can be convenient - especially when testing. However, it isn't advisable to store credentials in a clear-text file that can be viewed by non-trusted individuals.
-  subscription_id = var.subscription_id
-  client_id       = var.app_id
-  client_secret   = var.password
-  tenant_id       = var.tenant
+#   subscription_id = var.subscription_id
+#   client_id       = var.app_id
+#   client_secret   = var.password
+#   tenant_id       = var.tenant
   features {}
 }
 
