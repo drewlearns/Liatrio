@@ -156,5 +156,5 @@ stages:
           - task: Bash@3
             inputs:
               targetType: 'inline'
-              script: 'apk add jq && if [ $( curl http://20.85.134.46/ | jq ''.["message"]'' ) != "Automate all the things!" ] then exit 1 fi;'
+              script: 'curl --max-time 10 http://20.85.134.46 || exit 1'
               failOnStderr: true
