@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: drewlearnsliatrio 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drewlearnsliatrio
+  template:
+    metadata:
+      labels:
+        app: drewlearnsliatrio 
+    spec:
+      containers:
+        - name: drewlearnsliatrio 
+          image: containerregistry9ip91.azurecr.io/drewlearnsliatrio
+          ports:
+          - containerPort: 8080
