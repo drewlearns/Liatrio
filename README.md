@@ -92,3 +92,14 @@ I got to screen share with Blaire who was exceptionally helpful, thoughtful and 
 
 Lastly, I learned I should better time box projects like this in the future. I also added github actions udemy course with 10.5 hours of instruction to my syllabus. 
 
+---
+
+## Things I'd do differently
+
+I would have used gitlab + GKE + dockerhub and saved a ton of headaches related to Azure bugs.
+
+I would have been more specific on what files to copy in the dockerfile. 
+
+I would have spent more time adding cloudflare to the mix because I strongly dislike having a "final product" be without https.
+
+I would have found a better way to test the api endpoint than just a curl request and it would be dynamic in that it wouldn't lookup a static IP address, it would just go to a domain.
