@@ -48,7 +48,7 @@ stages:
     displayName: Deploy
     pool:
       vmImage: $(vmImageName)
-    environment: 'liatrio.develop'
+    environment: 'drewlearnsliatrio.develop'
     strategy:
       runOnce:
         deploy:
