@@ -13,7 +13,7 @@ message:
 ❌ The application must be deployed on a Kubernetes cluster running in a public cloud provider of
 your choice. 
 
-✅ The provisioning of the cluster as well as the deployment of the application must
+❌ The provisioning of the cluster as well as the deployment of the application must
 be done through code. Costs incurred as part of this exercise may be reimbursed, please reach out to the Slack channel with questions about specific costs.
 
 --- 
