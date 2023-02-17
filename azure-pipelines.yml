@@ -139,7 +139,20 @@ stages:
               then
                 message="${message} and is available at $url.<br><br>[Learn More](https://aka.ms/testwithreviewapps) about how to test and provide feedback for the app."
               fi
+- stage: Test
+  displayName: Test
+  dependsOn: Deploy
+  jobs:
 
+  - deployment: test
+    displayName: test
+    environment: 'drewlearnsliatrio-1185.$(k8sNamespaceForPR)'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - reviewApp: production
+          
           - task: Bash@3
             inputs:
               targetType: 'inline'
