@@ -1,6 +1,6 @@
 const express = require('express');
 const app = new express();
-const port = 30010;
+const port = 3000;
 app.listen(port, ()=>{
     console.log(`
     Serving Application on port ${port}
