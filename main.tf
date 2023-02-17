@@ -1,3 +1,20 @@
+resource "azurerm_resource_group" "main" {
+  name     = var.resource_group_name
+  location = "East US"
+}
+
+moved {
+  from = module.ssh-key.tls_private_key.ssh
+  to   = tls_private_key.ssh[0]
+}
+
+resource "tls_private_key" "ssh" {
+  count = var.admin_username == null ? 0 : 1
+
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
 resource "azurerm_kubernetes_cluster" "main" {
   location                            = azurerm_resource_group.main.location
   name                                = var.cluster_name == null ? "${var.prefix}-aks" : var.cluster_name
@@ -134,6 +151,13 @@ resource "azurerm_kubernetes_cluster" "main" {
     pod_cidr           = var.net_profile_pod_cidr
     service_cidr       = var.net_profile_service_cidr
   }
+  dynamic "oms_agent" {
+    for_each = var.log_analytics_workspace_enabled ? ["oms_agent"] : []
+
+    content {
+      log_analytics_workspace_id = var.log_analytics_workspace == null ? azurerm_log_analytics_workspace.main[0].id : var.log_analytics_workspace.id
+    }
+  }
   dynamic "service_principal" {
     for_each = var.client_id != "" && var.client_secret != "" ? ["service_principal"] : []
 
@@ -142,4 +166,117 @@ resource "azurerm_kubernetes_cluster" "main" {
       client_secret = var.client_secret
     }
   }
+
+  lifecycle {
+    precondition {
+      condition     = (var.client_id != "" && var.client_secret != "") || (var.identity_type != "")
+      error_message = "Either `client_id` and `client_secret` or `identity_type` must be set."
+    }
+    precondition {
+      # Why don't use var.identity_ids != null && length(var.identity_ids)>0 ? Because bool expression in Terraform is not short circuit so even var.identity_ids is null Terraform will still invoke length function with null and cause error. https://github.com/hashicorp/terraform/issues/24128
+      condition     = (var.client_id != "" && var.client_secret != "") || (var.identity_type == "SystemAssigned") || (var.identity_ids == null ? false : length(var.identity_ids) > 0)
+      error_message = "If use identity and `UserAssigned` or `SystemAssigned, UserAssigned` is set, an `identity_ids` must be set as well."
+    }
+  }
+}
+
+resource "azurerm_log_analytics_workspace" "main" {
+  count = var.log_analytics_workspace_enabled && var.log_analytics_workspace == null ? 1 : 0
+
+  location            = azurerm_resource_group.main.location
+  name                = var.cluster_log_analytics_workspace_name == null ? "${var.prefix}-workspace" : var.cluster_log_analytics_workspace_name
+  resource_group_name = coalesce(var.log_analytics_workspace_resource_group_name, var.resource_group_name)
+  retention_in_days   = var.log_retention_in_days
+  sku                 = var.log_analytics_workspace_sku
+  tags                = var.tags
+}
+
+resource "azurerm_log_analytics_solution" "main" {
+  count = var.log_analytics_workspace_enabled && var.log_analytics_solution_id == null ? 1 : 0
+
+  location            = azurerm_resource_group.main.location
+  resource_group_name   = coalesce(var.log_analytics_workspace_resource_group_name, var.resource_group_name)
+  solution_name         = "ContainerInsights"
+  workspace_name        = var.log_analytics_workspace != null ? var.log_analytics_workspace.name : azurerm_log_analytics_workspace.main[0].name
+  workspace_resource_id = var.log_analytics_workspace != null ? var.log_analytics_workspace.id : azurerm_log_analytics_workspace.main[0].id
+  tags                  = var.tags
+
+  plan {
+    product   = "OMSGallery/ContainerInsights"
+    publisher = "Microsoft"
+  }
+}
+
+resource "azurerm_container_registry" "main" {
+  name                = "containerRegistry${random_string.resource_code.result}"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  sku                 = "Standard"
+  admin_enabled       = true
+}
+
+# add the role to the identity the kubernetes cluster was assigned
+resource "azurerm_role_assignment" "main" {
+  scope                = azurerm_container_registry.main.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_kubernetes_cluster.main.kubelet_identity[0].object_id
+}
+
+resource "random_string" "resource_code" {
+  length  = 5
+  special = false
+  upper   = false
+}
+
+resource "azurerm_storage_account" "main" {
+  name                     = "tfstate${random_string.resource_code.result}"
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = azurerm_resource_group.main.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  tags                     = var.tags
+}
+
+resource "azurerm_storage_container" "main" {
+  name                  = "tfstate"
+  storage_account_name  = azurerm_storage_account.main.name
+  container_access_type = "blob"
+}
+
+resource "azurerm_public_ip" "main" {
+  name                = "PublicIPForLB"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "main" {
+  name                = "LoadBalancer-${random_string.resource_code.result}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  frontend_ip_configuration {
+    name                 = "PublicIPAddress"
+    public_ip_address_id = azurerm_public_ip.main.id
+  }
+}
+resource "azuredevops_project" "pipeline" {
+  name       = "Drew-Liatrio"
+  description        = "Managed by Terraform"
+  visibility         = "private"
+  version_control    = "Git"
+  work_item_template = "Agile"
+  features = {
+    "testplans" = "disabled"
+    "artifacts" = "enabled"
+  }
+}
+
+resource "azuredevops_project_pipeline_settings" "pipeline" {
+  project_id = azuredevops_project.pipeline.id
+  enforce_job_scope = true
+  enforce_referenced_repo_scoped_token = false
+  enforce_settable_var = true
+  publish_pipeline_metadata = false
+  status_badges_are_private = true
 }

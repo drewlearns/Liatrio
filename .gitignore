@@ -1,6 +1,6 @@
 node_modules
 .env
-tfvar.tf
+tfvars.tf
 terraform.tfstate
 .terraform/*
 .terraform* 
