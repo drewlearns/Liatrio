@@ -78,7 +78,7 @@ stages:
     pool:
       vmImage: $(vmImageName)
 
-    environment: 'liatrio.$(k8sNamespaceForPR)'
+    environment: 'drewlearnsliatrio.$(k8sNamespaceForPR)'
     strategy:
       runOnce:
         deploy:
