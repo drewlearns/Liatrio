@@ -156,5 +156,5 @@ stages:
           - task: Bash@3
             inputs:
               targetType: 'inline'
-              script: 'curl --max-time 10 -v http://20.85.134.4/ || exit 1'
+              script: 'curl --max-time 10 -v http://20.85.134.46/ || exit 1'
               failOnStderr: false
