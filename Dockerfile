@@ -4,4 +4,4 @@ COPY package.json /app/
 COPY . .
 RUN npm install
 
-CMD ["npm", "start"]
+ENTRYPOINT ["npm", "start"]
