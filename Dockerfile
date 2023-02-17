@@ -3,5 +3,5 @@ WORKDIR /app/
 COPY package.json /app/
 COPY . .
 RUN npm install
-
-ENTRYPOINT ["npm", "start"]
+EXPOSE 30010
+CMD ["npm", "start"]
