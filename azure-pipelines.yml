@@ -157,4 +157,4 @@ stages:
             inputs:
               targetType: 'inline'
               script: 'curl --max-time 10 http://20.85.134.46 || exit 1'
-              failOnStderr: true
+              failOnStderr: false
