@@ -16,4 +16,4 @@ spec:
         - name: drewlearnsliatrio 
           image: containerregistry9ip91.azurecr.io/drewlearnsliatrio
           ports:
-          - containerPort: 3000
+          - containerPort: 80
