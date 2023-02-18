@@ -88,7 +88,7 @@ Upon getting the build to work I did initially struggle with getting the IP addr
 
 I got to play with all the tools and be creative with the Node.js application. I learned a few things about service accounts and added service accounts to my list of subjects to grow on. 
 
-I got to screen share with Blaire who was exceptionally helpful, thoughtful and patient.
+I got to screen share with Blair who was exceptionally helpful, thoughtful and patient.
 
 Lastly, I learned I should better time box projects like this in the future. I also added github actions udemy course with 10.5 hours of instruction to my syllabus. 
 
