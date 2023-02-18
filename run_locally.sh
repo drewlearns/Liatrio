@@ -1,6 +1,6 @@
 #!/bin/bash
 
 docker build -t liatrio-drew .
-docker run -d -p 8080:3000 liatrio-drew
+docker run -d -p 8080:80 liatrio-drew
 sleep 3
-open http://localhost:8080
+open http://localhost
