@@ -16,7 +16,7 @@
   },
   "homepage": "https://github.com/drewlearns/Liatrio#readme",
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.19.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"
